@@ -676,8 +676,10 @@ def manage_ipv6(mode):
         default_nic = get_default_nic()
 
         ip6tables_commands = [
-            "ip6tables -A INPUT -i {0} -j DROP".format(default_nic),
-            "ip6tables -A OUTPUT -o {0} -j DROP".format(default_nic),
+            "ip6tables -F",
+            "ip6tables -P INPUT DROP",
+            "ip6tables -P OUTPUT DROP",
+            "ip6tables -P INPUT DROP",
         ]
         for command in ip6tables_commands:
             command = command.split()
@@ -715,7 +717,7 @@ def manage_ipv6(mode):
             ipv6_addr = lines[1].strip()
 
         ipv6_info = subprocess.run(
-            "ip addr show dev {0} | grep '\<inet6.*global\>'".format(default_nic), # noqa
+            "ip addr show dev {0} | grep '\<inet6.*global\>'".format(default_nic),  # noqa
             shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE
         )
 
@@ -833,10 +835,10 @@ def manage_killswitch(mode, proto=None, port=None):
             "iptables -A INPUT -i lo -j ACCEPT",
             "iptables -A OUTPUT -o {0} -j ACCEPT".format(device),
             "iptables -A INPUT -i {0} -j ACCEPT".format(device),
-            "iptables -A OUTPUT -o {0} -m state --state ESTABLISHED,RELATED -j ACCEPT".format(device), # noqa
-            "iptables -A INPUT -i {0} -m state --state ESTABLISHED,RELATED -j ACCEPT".format(device), # noqa
-            "iptables -A OUTPUT -p {0} -m {1} --dport {2} -j ACCEPT".format(proto.lower(), proto.lower(), port), # noqa
-            "iptables -A INPUT -p {0} -m {1} --sport {2} -j ACCEPT".format(proto.lower(), proto.lower(), port), # noqa
+            "iptables -A OUTPUT -o {0} -m state --state ESTABLISHED,RELATED -j ACCEPT".format(device),  # noqa
+            "iptables -A INPUT -i {0} -m state --state ESTABLISHED,RELATED -j ACCEPT".format(device),  # noqa
+            "iptables -A OUTPUT -p {0} -m {1} --dport {2} -j ACCEPT".format(proto.lower(), proto.lower(), port),  # noqa
+            "iptables -A INPUT -p {0} -m {1} --sport {2} -j ACCEPT".format(proto.lower(), proto.lower(), port),  # noqa
         ]
 
         if int(get_config_value("USER", "killswitch")) == 2:
@@ -849,8 +851,8 @@ def manage_killswitch(mode, proto=None, port=None):
             local_network = local_network.stdout.decode().strip().split()[1]
 
             exclude_lan_commands = [
-                "iptables -A OUTPUT -o {0} -d {1} -j ACCEPT".format(default_nic, local_network), # noqa
-                "iptables -A INPUT -i {0} -s {1} -j ACCEPT".format(default_nic, local_network), # noqa
+                "iptables -A OUTPUT -o {0} -d {1} -j ACCEPT".format(default_nic, local_network),  # noqa
+                "iptables -A INPUT -i {0} -s {1} -j ACCEPT".format(default_nic, local_network),  # noqa
             ]
 
             for lan_command in exclude_lan_commands:
